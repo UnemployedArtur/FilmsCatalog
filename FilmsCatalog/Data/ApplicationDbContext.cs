@@ -10,5 +10,13 @@ namespace FilmsCatalog.Data
             : base(options)
         {
         }
+
+        public DbSet<Film> Films { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfiguration(new FilmConfiguration());
+        }
     }
 }

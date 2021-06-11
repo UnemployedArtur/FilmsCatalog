@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FilmsCatalog.Models
+namespace FilmsCatalog.Models.ViewModels
 {
     public class SignUpViewModel
     {

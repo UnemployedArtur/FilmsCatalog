@@ -1,4 +1,5 @@
 using FilmsCatalog.Data;
+using FilmsCatalog.Localization;
 using FilmsCatalog.Models.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +31,8 @@ namespace FilmsCatalog
             services.AddDatabaseDeveloperPageExceptionFilter();            
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.AddAutoMapper(typeof(Startup));
+            services.AddScoped<IUserMessages, UserMessages>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

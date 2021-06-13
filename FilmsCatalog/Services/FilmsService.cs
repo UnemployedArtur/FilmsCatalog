@@ -14,16 +14,17 @@ namespace FilmsCatalog.Services
     public class FilmsService : IFilmsService
     {
         private readonly ApplicationDbContext _dbContext;
-
         private readonly IMapper _mapper;
-
         private readonly IUserMessages _userMessages;
+        private readonly IFilesService _filesService;
 
-        public FilmsService(ApplicationDbContext dbContext, IMapper mapper, IUserMessages userMessages)
+        public FilmsService(ApplicationDbContext dbContext, IMapper mapper, IUserMessages userMessages,
+            IFilesService filesService)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _userMessages = userMessages;
+            _filesService = filesService;
         }
 
         public async Task<ResultDto> AddFilmAsync(AddFilmDto dto)
@@ -32,12 +33,26 @@ namespace FilmsCatalog.Services
 
             _dbContext.Films.Add(entity);
 
+            var posterPath = await _filesService.SavePosterAsync(dto.Poster);
+
+            if (posterPath == null)
+            {
+                return new ResultDto()
+                {
+                    Errors = new List<string>() { _userMessages.Error_SavePoster }
+                };
+            }
+
+            entity.PosterPath = posterPath;
+
             try
             {
                 await _dbContext.SaveChangesAsync();
             }
             catch
             {
+                await _filesService.DeleteFileAsync(posterPath);
+
                 return new ResultDto()
                 {
                     Errors = new List<string>() { _userMessages.Error_SaveFilm }
@@ -72,6 +87,8 @@ namespace FilmsCatalog.Services
             }
             catch
             {
+                await _filesService.DeleteFileAsync(entity.PosterPath);
+
                 return new ResultDto()
                 {
                     Errors = new List<string>() { _userMessages.Error_DeleteFilm }

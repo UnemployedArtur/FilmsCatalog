@@ -1,3 +1,4 @@
+using FilmsCatalog.Configuration;
 using FilmsCatalog.Data;
 using FilmsCatalog.Localization;
 using FilmsCatalog.Models.Entities;
@@ -31,7 +32,11 @@ namespace FilmsCatalog
             services.AddDatabaseDeveloperPageExceptionFilter();            
             services.AddControllersWithViews();
             services.AddRazorPages();
+            
+            services.AddOptions().Configure<PostersConfiguration>(Configuration.GetSection("Posters"));
+
             services.AddAutoMapper(typeof(Startup));
+
             services.AddScoped<IUserMessages, UserMessages>();
         }
 

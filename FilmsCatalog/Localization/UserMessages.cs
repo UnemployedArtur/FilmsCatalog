@@ -7,5 +7,7 @@
         public string Error_NotFoundFilm => "Не удалось найти фильм.";
 
         public string Error_DeleteFilm => "Не удалось удалить фильм. Попробуй позже.";
+
+        public string Error_SavePoster => "Не удалость сохранить постер к фильму. Попробуйте другое изображение.";
     }
 }

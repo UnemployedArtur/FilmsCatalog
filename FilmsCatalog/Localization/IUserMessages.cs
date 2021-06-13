@@ -9,5 +9,7 @@
         public string Error_DeleteFilm { get; }
 
         public string Error_SavePoster { get; }
+
+        public string Error_WrongUserFilm { get; }
     }
 }

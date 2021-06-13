@@ -105,10 +105,12 @@ namespace FilmsCatalog.Services
 
             if (entity == null)
             {
-                return new ResultDto()
-                {
-                    Errors = new List<string>() { _userMessages.Error_NotFoundFilm }
-                };
+                return new ResultDto() { Errors = new List<string>() { _userMessages.Error_NotFoundFilm } };
+            }
+
+            if (dto.UserId != entity.UserId)
+            {
+                return new ResultDto() { Errors = new List<string>() { _userMessages.Error_WrongUserFilm } };
             }
 
             _mapper.Map(dto, entity);
@@ -135,9 +137,18 @@ namespace FilmsCatalog.Services
         public async Task<FilmDto> GetFilmAsync(BaseDto dto)
         {
             var entity = await _dbContext.Films
+                .Include(x => x.User)
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
-            return entity == null ? null : _mapper.Map<FilmDto>(entity);
+            if (entity == null)
+            {
+                return null;
+            }
+
+            var film = _mapper.Map<FilmDto>(entity);
+            film.UserName = $"{ entity.User.FirstName } { entity.User.LastName }";
+            
+            return film;
         }
 
         public async Task<PagedListDto<FilmDto>> GetPagedFilmsAsync(GetPagedFilmsDto dto)

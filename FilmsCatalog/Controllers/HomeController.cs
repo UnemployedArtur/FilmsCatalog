@@ -1,22 +1,44 @@
-﻿using FilmsCatalog.Models.ViewModels;
+﻿using FilmsCatalog.Models.Dto;
+using FilmsCatalog.Models.ViewModels;
+using FilmsCatalog.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace FilmsCatalog.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IFilmsService _filmsService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IFilmsService filmsService)
         {
             _logger = logger;
+            _filmsService = filmsService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 12)
         {
-            return View();
+            var dto = new GetPagedFilmsDto()
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            var pagedFilms = await _filmsService.GetPagedFilmsAsync(dto);
+
+            var viewModel = new FilmsViewModel()
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                HasNextPage = pagedFilms.HasNextPage,
+                HasPreviousPage = pagedFilms.HasPreviousPage,
+                Films = pagedFilms.Items
+            };
+
+            return View(viewModel);
         }
 
         public IActionResult Privacy()

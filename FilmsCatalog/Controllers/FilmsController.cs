@@ -30,29 +30,6 @@ namespace FilmsCatalog.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Films([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 12)
-        {
-            var dto = new GetPagedFilmsDto()
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
-
-            var pagedFilms = await _filmsService.GetPagedFilmsAsync(dto);
-
-            var viewModel = new FilmsViewModel()
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                HasNextPage = pagedFilms.HasNextPage,
-                HasPreviousPage = pagedFilms.HasPreviousPage,
-                Films = pagedFilms.Items
-            };
-
-            return View(viewModel);
-        }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> Film([FromRoute] Guid id)
         {
@@ -124,6 +101,8 @@ namespace FilmsCatalog.Controllers
         public async Task<IActionResult> EditFilm(EditFilmViewModel viewModel)
         {
             var dto = _mapper.Map<EditFilmDto>(viewModel);
+            dto.UserId = await GetUserId();
+
             var result = await _filmsService.EditFilmAsync(dto);
 
             if (!result.IsSuccess)

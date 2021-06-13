@@ -13,5 +13,7 @@ namespace FilmsCatalog.Models.Dto
         public int Year { get; set; }
 
         public string Director { get; set; }
+
+        public string UserId { get; set; }
     }
 }

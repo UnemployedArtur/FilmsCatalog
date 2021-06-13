@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FilmsCatalog.Models.Dto;
 using FilmsCatalog.Models.Entities;
+using FilmsCatalog.Models.ViewModels;
 
 namespace FilmsCatalog.Mappings
 {
@@ -11,6 +12,10 @@ namespace FilmsCatalog.Mappings
             CreateMap<AddFilmDto, Film>();
             CreateMap<EditFilmDto, Film>();
             CreateMap<Film, FilmDto>();
+            CreateMap<FilmDto, FilmViewModel>();
+            CreateMap<FilmDto, EditFilmViewModel>();
+            CreateMap<AddFilmViewModel, AddFilmDto>();
+            CreateMap<EditFilmViewModel, EditFilmDto>();
         }
     }
 }

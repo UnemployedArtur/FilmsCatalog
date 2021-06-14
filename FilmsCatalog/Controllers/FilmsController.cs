@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FilmsCatalog.Configuration;
 using FilmsCatalog.Localization;
 using FilmsCatalog.Models.Dto;
 using FilmsCatalog.Models.Entities;
@@ -8,7 +9,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace FilmsCatalog.Controllers
@@ -20,14 +23,16 @@ namespace FilmsCatalog.Controllers
         private readonly IMapper _mapper;
         private readonly IUserMessages _userMessages;
         private readonly UserManager<User> _userManager;
+        private readonly PostersConfiguration _postersConfiguration;
 
         public FilmsController(IFilmsService filmsService, IMapper mapper, IUserMessages userMessages,
-            UserManager<User> userManager)
+            UserManager<User> userManager, IOptions<PostersConfiguration> postersConfiguration)
         {
             _filmsService = filmsService;
             _mapper = mapper;
             _userMessages = userMessages;
             _userManager = userManager;
+            _postersConfiguration = postersConfiguration.Value;
         }
 
         [HttpGet("{id}")]
@@ -44,11 +49,15 @@ namespace FilmsCatalog.Controllers
             }
 
             var viewModel = _mapper.Map<FilmViewModel>(film);
+            var currentUserId = await GetUserId();
+
+            viewModel.IsOwner = currentUserId == film.UserId;
 
             return View(viewModel);
         }
 
         [HttpGet("add")]
+        [Authorize]
         public IActionResult AddFilm()
         {
             return View(new AddFilmViewModel());
@@ -72,12 +81,18 @@ namespace FilmsCatalog.Controllers
             return View(viewModel);
         }
 
-        [HttpPost]
+        [HttpPost("add")]
         [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> AddFilm(AddFilmViewModel viewModel)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(viewModel);
+            }
+
             var dto = _mapper.Map<AddFilmDto>(viewModel);
+
             dto.Poster = await ReadFormFile(viewModel.Poster);
             dto.UserId = await GetUserId();
 
@@ -96,11 +111,17 @@ namespace FilmsCatalog.Controllers
             return RedirectToAction("Film", "Films", new { result.Id });
         }
 
-        [HttpPut]
+        [HttpPost("edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditFilm(EditFilmViewModel viewModel)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(viewModel);
+            }
+
             var dto = _mapper.Map<EditFilmDto>(viewModel);
+
             dto.UserId = await GetUserId();
 
             var result = await _filmsService.EditFilmAsync(dto);
@@ -118,21 +139,34 @@ namespace FilmsCatalog.Controllers
             return RedirectToAction("Film", "Films", new { result.Id });
         }
 
-        [HttpDelete("{id}")]
+        [HttpPost("delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteFilm([FromRoute] Guid id)
+        public async Task<IActionResult> DeleteFilm([FromForm] Guid id)
         {
             var dto = new BaseDto() { Id = id };
+
             await _filmsService.DeleteFilmAsync(dto);
 
-            return RedirectToAction("Films", "Films");
+            return RedirectToAction("Index", "Home");
         }
 
         private async Task<byte[]> ReadFormFile(IFormFile formFile)
         {
+            if (formFile == null)
+            {
+                return null;
+            }
+
+            var fileExtension = Path.GetExtension(formFile.FileName);
+
+            if (!_postersConfiguration.Extensions.Contains(fileExtension))
+            {
+                return null;
+            }
+
             var fileLength = formFile.Length;
 
-            if (fileLength < 0)
+            if (fileLength < 0 || fileLength > _postersConfiguration.MaxSize)
             {
                 return null;
             }
@@ -147,6 +181,11 @@ namespace FilmsCatalog.Controllers
 
         private async Task<string> GetUserId()
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return null;
+            }
+
             var user = await _userManager.GetUserAsync(User);
 
             return user.Id;

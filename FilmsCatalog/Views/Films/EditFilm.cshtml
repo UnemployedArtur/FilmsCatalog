@@ -1,0 +1,44 @@
+﻿@model EditFilmViewModel
+
+@{
+    ViewData["Title"] = "Редактировать " + Model.Title;
+}
+
+<h2>Редактировать @Model.Title</h2>
+
+<form asp-controller="Films" asp-action="EditFilm" method="post" style="margin-top: 2em;">
+    <div class="form-row">
+        <div class="form-group col-md-4 col-sm-6 col-12">
+            <label asp-for="Title"></label>
+            <input asp-for="Title" class="form-control">
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4 col-sm-6 col-12">
+            <label asp-for="Description"></label>
+            <input asp-for="Description" class="form-control">
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4 col-sm-6 col-12">
+            <label asp-for="Year"></label>
+            <input asp-for="Year" class="form-control">
+            <span asp-validation-for="Year" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4 col-sm-6 col-12">
+            <label asp-for="Director"></label>
+            <input asp-for="Director" class="form-control">
+            <span asp-validation-for="Director" class="text-danger"></span>
+        </div>
+    </div>
+    <input type="hidden" asp-for="Id"  />
+    <div class="form-group">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <button type="submit" class="btn btn-outline-primary">Отправить</button>
+        <a href="/films/@Model.Id" style="cursor: pointer;" class="btn btn-primary text-white">Назад</a>
+    </div>
+</form>

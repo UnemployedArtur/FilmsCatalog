@@ -1,9 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace FilmsCatalog.Models.ViewModels
 {
     public class EditFilmViewModel
     {
+        [Required]
+        public Guid Id { get; set; }
+
         [Required(ErrorMessage = "Обязательное поле")]
         [Display(Name = "Название")]
         public string Title { get; set; }

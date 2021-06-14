@@ -13,6 +13,6 @@ namespace FilmsCatalog.Models.ViewModels
 
         public bool HasPreviousPage { get; set; }
 
-        public List<FilmDto> Films { get; set; }
+        public List<FilmViewModel> Films { get; set; }
     }
 }

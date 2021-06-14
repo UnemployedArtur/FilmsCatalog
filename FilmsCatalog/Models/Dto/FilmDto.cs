@@ -16,6 +16,8 @@ namespace FilmsCatalog.Models.Dto
 
         public string PosterPath { get; set; }
 
+        public string UserId { get; set; }
+
         public string UserName { get; set; }
     }
 }

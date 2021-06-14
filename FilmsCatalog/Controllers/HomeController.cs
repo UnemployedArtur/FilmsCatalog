@@ -1,8 +1,10 @@
-﻿using FilmsCatalog.Models.Dto;
+﻿using AutoMapper;
+using FilmsCatalog.Models.Dto;
 using FilmsCatalog.Models.ViewModels;
 using FilmsCatalog.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -12,11 +14,14 @@ namespace FilmsCatalog.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IFilmsService _filmsService;
+        private readonly IMapper _mapper;
 
-        public HomeController(ILogger<HomeController> logger, IFilmsService filmsService)
+        public HomeController(ILogger<HomeController> logger, IFilmsService filmsService,
+            IMapper mapper)
         {
             _logger = logger;
             _filmsService = filmsService;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> Index([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 12)
@@ -35,7 +40,7 @@ namespace FilmsCatalog.Controllers
                 PageSize = pageSize,
                 HasNextPage = pagedFilms.HasNextPage,
                 HasPreviousPage = pagedFilms.HasPreviousPage,
-                Films = pagedFilms.Items
+                Films = _mapper.Map<List<FilmDto>, List<FilmViewModel>>(pagedFilms.Items)
             };
 
             return View(viewModel);

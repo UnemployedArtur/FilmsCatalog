@@ -2,6 +2,8 @@ using FilmsCatalog.Configuration;
 using FilmsCatalog.Data;
 using FilmsCatalog.Localization;
 using FilmsCatalog.Models.Entities;
+using FilmsCatalog.Services;
+using FilmsCatalog.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -29,6 +31,11 @@ namespace FilmsCatalog
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = $"/Account/SignIn";
+            });
+
             services.AddDatabaseDeveloperPageExceptionFilter();            
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -38,6 +45,8 @@ namespace FilmsCatalog
             services.AddAutoMapper(typeof(Startup));
 
             services.AddScoped<IUserMessages, UserMessages>();
+            services.AddScoped<IFilmsService, FilmsService>();
+            services.AddScoped<IFilesService, FilesService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

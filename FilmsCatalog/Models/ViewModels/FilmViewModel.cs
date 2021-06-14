@@ -17,5 +17,7 @@ namespace FilmsCatalog.Models.ViewModels
         public string PosterPath { get; set; }
 
         public string UserName { get; set; }
+
+        public bool IsOwner { get; set; }
     }
 }

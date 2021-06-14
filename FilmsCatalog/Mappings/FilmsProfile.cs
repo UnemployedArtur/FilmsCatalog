@@ -14,7 +14,9 @@ namespace FilmsCatalog.Mappings
             CreateMap<Film, FilmDto>();
             CreateMap<FilmDto, FilmViewModel>();
             CreateMap<FilmDto, EditFilmViewModel>();
-            CreateMap<AddFilmViewModel, AddFilmDto>();
+            CreateMap<AddFilmViewModel, AddFilmDto>()
+                .ForMember(dest => dest.Poster, option => option.Ignore());
+
             CreateMap<EditFilmViewModel, EditFilmDto>();
         }
     }

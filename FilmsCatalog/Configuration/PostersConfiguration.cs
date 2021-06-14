@@ -1,4 +1,6 @@
-﻿namespace FilmsCatalog.Configuration
+﻿using System.Collections.Generic;
+
+namespace FilmsCatalog.Configuration
 {
     public class PostersConfiguration
     {
@@ -7,5 +9,9 @@
         public int Width { get; set; }
 
         public int Height { get; set; }
+
+        public int MaxSize { get; set; }
+
+        public List<string> Extensions { get; set; }
     }
 }

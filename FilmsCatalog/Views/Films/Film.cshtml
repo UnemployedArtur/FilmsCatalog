@@ -1,0 +1,36 @@
+﻿@model FilmViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row">
+    <div class="col-lg-3">
+        @if (string.IsNullOrWhiteSpace(Model.PosterPath))
+        {
+            <div class="mb-lg-2" style="background-color: #ECEFF1; height: 330px;"></div>
+        }
+        else
+        {
+            <img src="@Model.PosterPath" class="img-fluid" style="height: 330px;"/>
+        }
+        <p><span class="font-weight-bold">Режисcер: </span>@Model.Director</p>
+        <p><span class="font-weight-bold">Год выпуска: </span>@Model.Year</p>
+        <p><span class="font-weight-bold">Кто выложил: </span>@Model.UserName</p>
+    </div>
+    <div class="col-lg-9">
+        <h2>@Model.Title</h2>
+        <p>@Model.Description</p>
+        @if (Model.IsOwner)
+        { 
+            <div>
+                <a href="/films/@Model.Id/edit" style="cursor: pointer;" class="btn btn-primary text-white">Редактировать</a>
+
+                <form asp-controller="Films" asp-action="DeleteFilm" method="post" style="margin-top: 1em;">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>

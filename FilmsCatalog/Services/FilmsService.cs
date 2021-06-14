@@ -5,6 +5,8 @@ using FilmsCatalog.Models.Dto;
 using FilmsCatalog.Models.Entities;
 using FilmsCatalog.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,14 +19,16 @@ namespace FilmsCatalog.Services
         private readonly IMapper _mapper;
         private readonly IUserMessages _userMessages;
         private readonly IFilesService _filesService;
+        private readonly ILogger<FilmsService> _logger;
 
         public FilmsService(ApplicationDbContext dbContext, IMapper mapper, IUserMessages userMessages,
-            IFilesService filesService)
+            IFilesService filesService, ILogger<FilmsService> logger)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _userMessages = userMessages;
             _filesService = filesService;
+            _logger = logger;
         }
 
         public async Task<ResultDto> AddFilmAsync(AddFilmDto dto)
@@ -33,50 +37,40 @@ namespace FilmsCatalog.Services
 
             _dbContext.Films.Add(entity);
 
-            var posterPath = await _filesService.SavePosterAsync(dto.Poster);
-
-            if (posterPath == null)
+            if (dto.Poster != null)
             {
-                return new ResultDto()
-                {
-                    Errors = new List<string>() { _userMessages.Error_SavePoster }
-                };
-            }
+                var posterPath = await _filesService.SavePosterAsync(dto.Poster);
 
-            entity.PosterPath = posterPath;
+                if (posterPath == null)
+                {
+                    return new ResultDto() { Errors = new List<string>() { _userMessages.Error_SavePoster } };
+                }
+
+                entity.PosterPath = posterPath;
+            }
 
             try
             {
                 await _dbContext.SaveChangesAsync();
             }
-            catch
+            catch (Exception exception)
             {
-                await _filesService.DeleteFileAsync(posterPath);
+                await _filesService.DeleteFileAsync(entity.PosterPath);
+                _logger.LogError(exception.ToString());
 
-                return new ResultDto()
-                {
-                    Errors = new List<string>() { _userMessages.Error_SaveFilm }
-                };
+                return new ResultDto() { Errors = new List<string>() { _userMessages.Error_SaveFilm } };
             }
 
-            return new ResultDto() 
-            { 
-                IsSuccess = true,
-                Id = entity.Id
-            };
+            return new ResultDto() { IsSuccess = true, Id = entity.Id };
         }
 
         public async Task<ResultDto> DeleteFilmAsync(BaseDto dto)
         {
-            var entity = await _dbContext.Films
-                .FirstOrDefaultAsync(x => x.Id == dto.Id);
+            var entity = await _dbContext.Films.FirstOrDefaultAsync(x => x.Id == dto.Id);
 
             if (entity == null)
             {
-                return new ResultDto()
-                {
-                    Errors = new List<string>() { _userMessages.Error_NotFoundFilm }
-                };
+                return new ResultDto() { Errors = new List<string>() { _userMessages.Error_NotFoundFilm } };
             }
 
             _dbContext.Films.Remove(entity);
@@ -84,15 +78,13 @@ namespace FilmsCatalog.Services
             try
             {
                 await _dbContext.SaveChangesAsync();
-            }
-            catch
-            {
                 await _filesService.DeleteFileAsync(entity.PosterPath);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception.ToString());
 
-                return new ResultDto()
-                {
-                    Errors = new List<string>() { _userMessages.Error_DeleteFilm }
-                };
+                return new ResultDto() { Errors = new List<string>() { _userMessages.Error_DeleteFilm } };
             }
 
             return new ResultDto() { IsSuccess = true };
@@ -100,8 +92,7 @@ namespace FilmsCatalog.Services
 
         public async Task<ResultDto> EditFilmAsync(EditFilmDto dto)
         {
-            var entity = await _dbContext.Films
-                .FirstOrDefaultAsync(x => x.Id == dto.Id);
+            var entity = await _dbContext.Films.FirstOrDefaultAsync(x => x.Id == dto.Id);
 
             if (entity == null)
             {
@@ -119,19 +110,14 @@ namespace FilmsCatalog.Services
             {
                 await _dbContext.SaveChangesAsync();
             }
-            catch
+            catch (Exception exception)
             {
-                return new ResultDto()
-                {
-                    Errors = new List<string>() { _userMessages.Error_SaveFilm }
-                };
+                _logger.LogError(exception.ToString());
+
+                return new ResultDto() { Errors = new List<string>() { _userMessages.Error_SaveFilm } };
             }
 
-            return new ResultDto()
-            {
-                IsSuccess = true,
-                Id = entity.Id
-            };
+            return new ResultDto() { IsSuccess = true, Id = entity.Id };
         }
 
         public async Task<FilmDto> GetFilmAsync(BaseDto dto)
@@ -146,6 +132,7 @@ namespace FilmsCatalog.Services
             }
 
             var film = _mapper.Map<FilmDto>(entity);
+
             film.UserName = $"{ entity.User.FirstName } { entity.User.LastName }";
             
             return film;
@@ -156,10 +143,10 @@ namespace FilmsCatalog.Services
             var entities = await _dbContext.Films
                 .Skip((dto.PageNumber - 1) * dto.PageSize)
                 .Take(dto.PageSize)
+                .OrderByDescending(x => x.Id)
                 .ToListAsync();
 
             var filmsDto = _mapper.Map<List<FilmDto>>(entities);
-
             var totalCount = await _dbContext.Films.CountAsync();
 
             return new PagedListDto<FilmDto>
